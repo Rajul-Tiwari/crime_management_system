@@ -21,7 +21,7 @@ public class CrimeDaoImpl implements CrimeDAO {
 		
 
 		try(Connection conn= DbUtil.provideConnection();) {
-			PreparedStatement ps = conn.prepareStatement("insert into  CrimeInfo (cdate, cplace, Crime_name, Victims, Description_crime, suspected_name)"
+			PreparedStatement ps = conn.prepareStatement("insert into  CrimeInfo (cdate, cplace, Crime_name, Victims, DescriptionCrime, suspected_name)"
 												+ "values (?,?,?,?,?,?)");
 			
 			ps.setString(1,crimeInfo.getCdate());
@@ -82,38 +82,139 @@ public class CrimeDaoImpl implements CrimeDAO {
 				
 				throw new CrimeInfoException(e.getMessage());
 			}
+		    if(clist.size()==0)
+		    	throw new CrimeInfoException("No crime found..");
+		    	
 		
 		  return clist;
 	}
 
 	@Override
 	public int statuscount(String s1) throws CrimeInfoException {
-		// TODO Auto-generated method stub
-		return 0;
+		int count=0;
+		
+		           try (Connection conn=DbUtil.provideConnection();){
+					PreparedStatement ps=conn.prepareStatement("select count(*) from criminfo where case_status=?");
+					ps.setString(1, s1);
+					ResultSet rs=ps.executeQuery();
+					if(rs.next()) {
+						count=rs.getInt("count(*)");
+					}
+				} catch (SQLException e) {
+					
+					e.printStackTrace();
+				}
+		
+		return count;
 	}
 
 	@Override
 	public int Monthcount(String s1, String s2) throws CrimeInfoException {
-		// TODO Auto-generated method stub
-		return 0;
+		int count=0;
+		
+		try (Connection conn= DbUtil.provideConnection();){
+			PreparedStatement ps = conn.prepareStatement ("select count(*) from criminfo where cdate between ? AND ?");
+				ps.setString(1,s1);
+				ps.setString(2, s2);
+		
+				
+			ResultSet rs= ps.executeQuery();
+			if(rs.next()) {
+				
+				count= rs.getInt("count(*)");
+			}
+			
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	
+	return count;
 	}
 
 	@Override
 	public List<CrimeInfo> CrimeArea(String s) throws CrimeInfoException {
-		// TODO Auto-generated method stub
-		return null;
+List<CrimeInfo> Crime= new ArrayList<>();
+		
+		try (Connection conn= DbUtil.provideConnection();){
+			PreparedStatement ps = conn.prepareStatement ("select * from criminfo where cplace=?");
+			
+	          ps.setString(1, s);
+				
+			ResultSet rs= ps.executeQuery();
+			while(rs.next()) {
+				int id= rs.getInt("crimId");
+				String d= rs.getString("cdate");
+				String a= rs.getString("cplace");
+				String g= rs.getString("crime_name");
+				String ad= rs.getString("Victims");
+				String fm= rs.getString("DescriptionCrime");
+				String  area= rs.getString("suspected_name");
+				String crn= rs.getString("CaseStatus");
+				
+				
+			CrimeInfo cri=new CrimeInfo(id, d, a, g, ad, fm, area, crn);
+		    Crime.add(cri);
+	    
+			}
+			
+			} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	
+
+		if(Crime.size() == 0)
+			throw new CrimeInfoException("No crime found..");
+	
+		
+		return Crime;
 	}
 
 	@Override
 	public String UpdateCrime(CrimeInfo crimeInfo) {
-		// TODO Auto-generated method stub
-		return null;
+String msg="Not Updated....";
+		
+		try(Connection conn= DbUtil.provideConnection();) {
+			PreparedStatement ps = conn.prepareStatement("update criminfo set case_status=? where crimId=?");
+				
+			
+			ps.setString(1, crimeInfo.getCaseStatus());
+			ps.setInt(2, crimeInfo.getCrimeId());
+			ps.executeUpdate();
+			
+		
+				
+				msg="Case Status Updated Successfully";
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return msg;
 	}
 
 	@Override
 	public String DeleteCrime(CrimeInfo crimeInfo) {
-		// TODO Auto-generated method stub
-		return null;
+String msg="Not Updated....";
+		
+		try(Connection conn= DbUtil.provideConnection();) {
+			PreparedStatement ps = conn.prepareStatement("DELETE FROM criminfo WHERE crimId=?");
+			
+		
+			ps.setInt(1, crimeInfo.getCrimeId());
+			ps.executeUpdate();
+		
+				msg="Data deleted Successfully";
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return msg;
 	}
 	
 
